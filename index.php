@@ -313,6 +313,18 @@ ini_set('error_reporting', E_ALL);
           } elseif($Sigma < -10) {
             $Sigma = -10;
           }
+
+          $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0)));
+          $I_gs_pre = $S_GS * $Epsilon_gs_pre + $DI_GS;
+          if ($I_gs_pre > 250.0) {
+              $I_gs_pre = 250.0;
+          } elseif ($I_gs_pre < -250.0) {
+              $I_gs_pre = -250.0;
+          }
+          $X[16] = ($I_gs_pre / $T_GS) - ($Y[16] / $T_GS); //pI_GS
+          $Epsilon_gs = $Y[16] / $S_GSn;
+
+
           ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
           $X[11] = $k[7] * $Epsilon_gs;
           $X[12] = (($k[2] * $Epsilon_gs_pre) / $t[2]) - ($Y[12] / $t[2]);
@@ -347,7 +359,7 @@ ini_set('error_reporting', E_ALL);
           $Delta = (-1.0) * $F[6] * ($k_Ipsilon_set * $Ipsilon_set);
           $Sigma = $F[4] * (($k_Wz + $k_Wz_pre) * $Y[2] + $Delta);
 
-          
+
 
 
 
