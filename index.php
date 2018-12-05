@@ -263,7 +263,8 @@ ini_set('error_reporting', E_ALL);
       $X[5] = $c[6] * $Y[3]; // pH
       // $X[6] = $X[5] - $H_set; // pDH
       $DH = $Y[5] - $H_set; // DH ## Melnik Method !!!
-      $DH_gs = $Y[5] - 
+      $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300);
+      $DH_gs = $Y[5] - $H_gs;
       $n_y = $c[16] * $X[3]; // n_y
       $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY
       $Fi_st = -0.14706 * $Dz;
