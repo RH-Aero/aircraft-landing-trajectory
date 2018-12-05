@@ -88,6 +88,7 @@ ini_set('error_reporting', E_ALL);
   ## F[2] = +- 10 dergees
   ## F[3] = +- 8 dergees
   ## F[4] = +- 10 dergees
+  $k_Wz_pre = 0;
   $k[4] = 1.0;
   $k[8] = 13.0;
   $k[11] = 6.0;
@@ -97,6 +98,7 @@ ini_set('error_reporting', E_ALL);
   $L_RWY = 3000; // m
   $S_LOCn = 167; // µA per dergee
   $DI_LOC = 0;
+  $DI_GS = 0;
   $T_LOC = 0.2;
   $Psi_g0 = 90;
   $Tetta_GSn = 2.67;
@@ -204,7 +206,10 @@ ini_set('error_reporting', E_ALL);
     $De = 0;
     $Dv = 0;
     $Epsilon_gs = 0;
+    $Epsilon_gs_pre = 0;
     $I_gs = 0;
+    $Dz = 0;
+    $Fi_st = 0;
 
     echo "<div class=\"container no-pad-bot scrollspy\" id=\"flightcase-" . $flight_case ."\">
       <div class=\"section\">
@@ -273,9 +278,7 @@ ini_set('error_reporting', E_ALL);
         case "regulation" : {
 
           for($t; $t >= $ts; $ts += 1){
-            if($Y[7] >= $DGp) {
-            
-            } elseif($Y[7] >= $DZp && $Dz < 17) {
+            if($Y[7] >= $DZp && $Dz < 17) {
               $Dz += $pDz;
               $Fi_st = -2.5;
             }
@@ -284,83 +287,81 @@ ini_set('error_reporting', E_ALL);
             }
           }
 
-          // $X[8] = $k_integral * $Y[6];
-          $X[8] = $k_integral * $DH; ## Melnik Method !!!
-          if($X[8] > 10) {
-            $X[8] = 10;
-          } elseif($X[8] < -10) {
-            $X[8] = -10;
-          }
-          // $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH;
-          $X[9] = ($k_DH * $DH - $Y[9]) / $T_DH; ## Melnik Method !!!
-          // $Delta_pre = $Y[8] + $k_H * $Y[6] + $Y[9];
-          $Delta_pre = $Y[8] + $k_H * $DH + $Y[9]; ## Melnik Method !!!
-          if($Delta_pre > 10) {
-            $Delta_pre = 10;
-          } elseif($Delta_pre < -10) {
-            $Delta_pre = -10;
-          }
-          $X[10] = ($Ipsilon_op[1] - $Y[10]) / $T_op[1];
-          $Delta = $Delta_pre + $k_Ipsilon * $Y[1] + $Y[10];
-          if($Delta > 8) {
-            $Delta = 8;
-          } elseif($Delta < -8) {
-            $Delta = -8;
-          }
-          $Sigma = $k_Wz * $Y[2] + $Delta;
-          if($Sigma > 10) {
-            $Sigma = 10;
-          } elseif($Sigma < -10) {
-            $Sigma = -10;
-          }
-          ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
-          $X[11] = $k[7] * $Epsilon_gs;
-          $X[12] = (($k[2] * $Epsilon_gs_pre) / $t[2]) - ($Y[12] / $t[2]);
-          //OUR METHODS, X[13] = pA3
-          //$X[13] = (($k[11] * $X[1]) / $t[11]) - ($Y[13] / $t[11]);
-          //$X[14] = (($k[4] * ($Y[11] + $Y[12] + $Y[13])) / $t[4]) - ($Y[14] / $t[4]); // pB1
-          //$X[15] = (($k[8] * ($X[1])) / $t[8]) - ($Y[15] / $t[8]); //pB2
-          /*
-           $F[1] = $Y[14] + $Y[15];
-          if ($F[1] > 7.5) {
-              $F[1] = 7.5;
-          } elseif ($F[1] < -7.5) {
-              $F[1] = -7.5;
-          }
-          $Ipsilon_set = (-1.0) * $F[1];
-           */
+          if($Y[7] >= $DGp) {
+            $k_Wz_pre = 3.0;
+            ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
+            $X[11] = $k[7] * $Epsilon_gs;
+            $X[12] = (($k[2] * $Epsilon_gs_pre) / $t[2]) - ($Y[12] / $t[2]);
+            //OUR METHODS, X[13] = pA3
+            //$X[13] = (($k[11] * $X[1]) / $t[11]) - ($Y[13] / $t[11]);
+            //$X[14] = (($k[4] * ($Y[11] + $Y[12] + $Y[13])) / $t[4]) - ($Y[14] / $t[4]); // pB1
+            //$X[15] = (($k[8] * ($X[1])) / $t[8]) - ($Y[15] / $t[8]); //pB2
+            /*
+            $F[1] = $Y[14] + $Y[15];
+            if ($F[1] > 7.5) {
+                $F[1] = 7.5;
+            } elseif ($F[1] < -7.5) {
+                $F[1] = -7.5;
+            }
+            $Ipsilon_set = (-1.0) * $F[1];
+            */
 
-          //MELNYK METHODS, X[13] = A3, Y[13] = A3_INTEGRATED
-          $X[13] = (($k[11] * ($Y[1] + $Ipsilon_op[2])) / $t[11]) - ($Y[13] / $t[11]);
-          $X[14] = (($k[4] * ($Y[11] + $Y[12] + $X[13])) / $t[4]) - ($Y[14] / $t[4]); // pB1
-          $X[15] = (($k[8] * ($Y[1] + $Ipsilon_op[2])) / $t[8]) - ($Y[15] / $t[8]); //B2
+            //MELNYK METHODS, X[13] = A3, Y[13] = A3_INTEGRATED
+            $X[13] = (($k[11] * ($Y[1] + $Ipsilon_op[2])) / $t[11]) - ($Y[13] / $t[11]);
+            $X[14] = (($k[4] * ($Y[11] + $Y[12] + $X[13])) / $t[4]) - ($Y[14] / $t[4]); // pB1
+            $X[15] = (($k[8] * ($Y[1] + $Ipsilon_op[2])) / $t[8]) - ($Y[15] / $t[8]); //B2
 
-          $F[1] = $Y[14] + $X[15];
-          if ($F[1] > 7.5) {
-              $F[1] = 7.5;
-          } elseif ($F[1] < -7.5) {
-              $F[1] = -7.5;
-          }
-          $Ipsilon_set = (-1.0) * $F[1];
+            $F[1] = $Y[14] + $X[15];
+            if ($F[1] > 7.5) {
+                $F[1] = 7.5;
+            } elseif ($F[1] < -7.5) {
+                $F[1] = -7.5;
+            }
+            $Ipsilon_set = (-1.0) * $F[1];
 
-          /////////////////////////////////////////////////////////////////////////////////////////////
-          $Delta = (-1.0) * $F[6] * ($k_Ipsilon_set * $Ipsilon_set);
-          $Sigma = $F[4] * (($k_Wz + $k_Wz_pre) * $Y[2] + $Delta);
-
-          
-
-
-
-          if($Delta >= 2) {
-            $Delta = 0.6;
-          } elseif($Delta <= -2) {
-            $Delta = -0.6;
+            /////////////////////////////////////////////////////////////////////////////////////////////
+            $Delta = (-1.0) * $F[6] * ($k_Ipsilon_set * $Ipsilon_set);
+            $Sigma = $F[4] * (($k_Wz + $k_Wz_pre) * $Y[2] + $Delta);
+            if($Delta >= 2) {
+              $Delta = 0.6;
+            } elseif($Delta <= -2) {
+              $Delta = -0.6;
+            } else {
+              $Delta = 0;
+            }
+            $X[17] = $Delta; // pHi
+            $Dv = $Sigma + $Y[17]; // Dv
           } else {
-            $Delta = 0;
+            // $X[8] = $k_integral * $Y[6];
+            $X[8] = $k_integral * $DH; ## Melnik Method !!!
+            if($X[8] > 10) {
+              $X[8] = 10;
+            } elseif($X[8] < -10) {
+              $X[8] = -10;
+            }
+            // $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH;
+            $X[9] = ($k_DH * $DH - $Y[9]) / $T_DH; ## Melnik Method !!!
+            // $Delta_pre = $Y[8] + $k_H * $Y[6] + $Y[9];
+            $Delta_pre = $Y[8] + $k_H * $DH + $Y[9]; ## Melnik Method !!!
+            if($Delta_pre > 10) {
+              $Delta_pre = 10;
+            } elseif($Delta_pre < -10) {
+              $Delta_pre = -10;
+            }
+            $X[10] = ($Ipsilon_op[1] - $Y[10]) / $T_op[1];
+            $Delta = $Delta_pre + $k_Ipsilon * $Y[1] + $Y[10];
+            if($Delta > 8) {
+              $Delta = 8;
+            } elseif($Delta < -8) {
+              $Delta = -8;
+            }
+            $Sigma = $k_Wz * $Y[2] + $Delta;
+            if($Sigma > 10) {
+              $Sigma = 10;
+            } elseif($Sigma < -10) {
+              $Sigma = -10;
+            }
           }
-          $X[45] = $Delta; // pHi
-          $Dv = $Sigma + $Y[45]; // Dv
-
         break;
         }
       }
