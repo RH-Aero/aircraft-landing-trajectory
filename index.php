@@ -13,8 +13,8 @@ ini_set('error_reporting', E_ALL);
   $I_x = 250000; // kg * m * s^2 - cross moment of inertia
   $I_y = 900000; // kg * m * s^2 - roadway moment of inertia
   $I_z = 660000; // kg * m * s^2 - lengthwise moment of inertia
-  $Dz = 17; // deg - angle of flaps
-  $Fi_st = -2.5; // deg - angle of fin
+  $Dz = 0; // deg - angle of flaps
+  $Fi_st = 0; // deg - angle of fin
   $pDz = 2; // deg per s
 
   // hs flight mode
@@ -103,9 +103,11 @@ ini_set('error_reporting', E_ALL);
   $S_GSn = 560; // µA per dergee
   $T_GS = 0.2;
   $DistanceZ = 3500;
+  $D_RWY0 = 18000;
 
   // for calculations
-  $DGp = (rad2deg($H0) / 2.67) - $L_RWY - 300; // Gp - glide path
+  $DGp = $D_RWY0 - (rad2deg($H0) / 2.67) + 300; // Gp - glide path
+  $DZp = $DGp - 3500;
   $Ga_B = $m_y_B - (($C_z_B * $pr * $S * $l) / (4 * $m)) * $m_y_vWy;
   $W_x_De = -0.73;
   $Xx = (($m_x_B * $I_y) / ($m_y_B * $I_x)) * (1 / sqrt(1 - pow(($m_x_vWx / $I_x), 2) * $I_y * $S * pow($l, 2) * ($pr / (4 * $m_y_B))));
@@ -151,10 +153,11 @@ ini_set('error_reporting', E_ALL);
     $t = 0; // s - flight time
     $td = 0; // s - output time
     $tg = 0; // s - graphics output time
+    $ts = 0; // s - output time every second
     $tf = 300.1; // s - flight ending time
     $dt = 0.01; // 1 per s - integration step
-    $dd = 25; // s - output step
-    $gd = 5; // s - graphics output step
+    $dd = 5; // s - output step
+    $gd = 1; // s - graphics output step
 
     $X = array_fill(1, 17, 0);
     $Y = array_fill(1, 17, 0);
@@ -193,7 +196,7 @@ ini_set('error_reporting', E_ALL);
         $S_GS = $S_GSn;
       break;
       }
-    }
+    } 
 
     $W = 0;
     $NV = 0;
@@ -258,7 +261,9 @@ ini_set('error_reporting', E_ALL);
       $X[3] = $c[4] * $Y[4] + $c[13] * $Dz + $c[22] * $Fi_st + $c[9] * $Dv; // pTetta
       $X[4] = $Y[1] - $Y[3]; // pAlpha
       $X[5] = $c[6] * $Y[3]; // pH
-      $X[6] = $X[5] - $H_set; // pDH
+      // $X[6] = $X[5] - $H_set; // pDH
+      $DH = $Y[5] - $H_set; // DH ## Melnik Method !!!
+      $DH_gs = $Y[5] - 
       $n_y = $c[16] * $X[3]; // n_y
       $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY
       $Fi_st = -0.14706 * $Dz;
@@ -266,17 +271,29 @@ ini_set('error_reporting', E_ALL);
       switch($mode) {
         case "regulation" : {
 
-          if($Y[7] >= $DGp) {
+          for($t; $t >= $ts; $ts += 1){
+            if($Y[7] >= $DGp) {
             
+            } elseif($Y[7] >= $DZp && $Dz < 17) {
+              $Dz += $pDz;
+              $Fi_st = -2.5;
+            }
+            if($Dz > 17) {
+              $Dz = 17;
+            }
           }
-          $X[8] = $k_integral * $Y[6];
+
+          // $X[8] = $k_integral * $Y[6];
+          $X[8] = $k_integral * $DH; ## Melnik Method !!!
           if($X[8] > 10) {
             $X[8] = 10;
           } elseif($X[8] < -10) {
             $X[8] = -10;
           }
-          $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH;
-          $Delta_pre = $Y[8] + $k_H * $Y[6] + $Y[9];
+          // $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH;
+          $X[9] = ($k_DH * $DH - $Y[9]) / $T_DH; ## Melnik Method !!!
+          // $Delta_pre = $Y[8] + $k_H * $Y[6] + $Y[9];
+          $Delta_pre = $Y[8] + $k_H * $DH + $Y[9]; ## Melnik Method !!!
           if($Delta_pre > 10) {
             $Delta_pre = 10;
           } elseif($Delta_pre < -10) {
@@ -296,6 +313,8 @@ ini_set('error_reporting', E_ALL);
             $Sigma = -10;
           }
 
+
+
           if($Delta >= 2) {
             $Delta = 0.6;
           } elseif($Delta <= -2) {
@@ -304,7 +323,7 @@ ini_set('error_reporting', E_ALL);
             $Delta = 0;
           }
           $X[11] = $Delta; // pHi
-          $Dv = $Sigma + $Y[11]; // Dv
+          //$Dv = $Sigma + $Y[11]; // Dv
 
 
         break;
@@ -368,7 +387,8 @@ ini_set('error_reporting', E_ALL);
     <div class=\"section\">
       <h4>Vi = " . $Vi . "</h2>
       <h5>M = " . $M . "</h3>
-      <h5>Dgp = " . $DGp . "</h3>
+      <h5>DGp = " . $DGp . "</h3>
+      <h5>DZp = " . $DZp . "</h3>
     </div>
   </div>";
 ?>
