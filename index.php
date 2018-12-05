@@ -82,7 +82,7 @@ ini_set('error_reporting', E_ALL);
   $k_DH = 0.4;
   $T_op[1] = 2.0;
   $T_DH = 1.0;
-  $Ipsilon_op[1] = 5;
+  $Ipsilon_op[1] = 0;
   $Ipsilon_op[2] = 2.5;
   ## F[1] = +- 10 dergees
   ## F[2] = +- 10 dergees
@@ -92,6 +92,9 @@ ini_set('error_reporting', E_ALL);
   $k[4] = 1.0;
   $k[8] = 13.0;
   $k[11] = 6.0;
+  $T[2] = 0.7;
+  $T[8] = 15.0;
+  $T[11] = 1.7;
   ### $F[6] = +- 7.0; // H > 250 m
   ### $F[6] = +- 3.5; // 100 <= H <= 250 m
   ### $F[6] = +- 3.5; // H < 100 m
@@ -108,8 +111,10 @@ ini_set('error_reporting', E_ALL);
   $D_RWY0 = 18000;
 
   // for calculations
-  $DGp = $D_RWY0 - (rad2deg($H0) / 2.67) + 300; // Gp - glide path
-  $DZp = $DGp - 3500;
+  $DGp = $D_RWY0 - (rad2deg($H0) / 2.67) + 300; // Gp - glide path ## normal flight
+  // $DGp = (rad2deg($H0) / 2.67) - 300; // Gp - glide path ## reverse flight
+  $DZp = $DGp - 3500; ## normal flight
+  // $DZp = $DGp + 3500; ## reverse flight
   $Ga_B = $m_y_B - (($C_z_B * $pr * $S * $l) / (4 * $m)) * $m_y_vWy;
   $W_x_De = -0.73;
   $Xx = (($m_x_B * $I_y) / ($m_y_B * $I_x)) * (1 / sqrt(1 - pow(($m_x_vWx / $I_x), 2) * $I_y * $S * pow($l, 2) * ($pr / (4 * $m_y_B))));
@@ -161,11 +166,12 @@ ini_set('error_reporting', E_ALL);
     $dd = 5; // s - output step
     $gd = 1; // s - graphics output step
 
-    $X = array_fill(1, 17, 0);
-    $Y = array_fill(1, 17, 0);
-    $F = array_fill(1, 2, 0);
+    $X = array_fill(1, 20, 0);
+    $Y = array_fill(1, 20, 0);
+    $F = array_fill(1, 10, 0);
     $Y[5] = $H0; // m
-    $Y[7] = 0; // m 18000
+    $Y[7] = 0; // m ## normal flight
+    // $Y[7] = $D_RWY0; // m ## reverse flight
 
     switch($flight_case) {
       case 1 : {
@@ -208,6 +214,7 @@ ini_set('error_reporting', E_ALL);
     $Epsilon_gs = 0;
     $Epsilon_gs_pre = 0;
     $I_gs = 0;
+    $I_gs_pre = 0;
     $Dz = 0;
     $Fi_st = 0;
 
@@ -268,29 +275,37 @@ ini_set('error_reporting', E_ALL);
       $X[5] = $c[6] * $Y[3]; // pH
       // $X[6] = $X[5] - $H_set; // pDH
       $DH = $Y[5] - $H_set; // DH ## Melnik Method !!!
-      $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300);
+      $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight
+      // $H_gs = tan(deg2rad($Tetta_GS)) * ($Y[7] + 300); ## reverse flight
       $DH_gs = $Y[5] - $H_gs;
       $n_y = $c[16] * $X[3]; // n_y
-      $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY
+      $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY ## normal flight
+      // $X[7] = -1 * $V0 * cos(deg2rad($Y[3])); // pD_RWY ## reverse flight
       $Fi_st = -0.14706 * $Dz;
 
       switch($mode) {
         case "regulation" : {
 
           for($t; $t >= $ts; $ts += 1){
-            if($Y[7] >= $DZp && $Dz < 17) {
+            if($Y[7] >= $DZp && $Dz < 17) { ## normal flight
+            // if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
+              $Ipsilon_op[1] = 5;
               $Dz += $pDz;
               $Fi_st = -2.5;
             }
             if($Dz > 17) {
               $Dz = 17;
+            } else {
+              // $Ipsilon_op[1] = 5;
             }
           }
 
-          if($Y[7] >= $DGp) {
+          if($Y[7] >= $DGp) { ## normal flight
+          // if($Y[7] <= $DGp) { ## reverse flight
             $k_Wz_pre = 3.0;
 
-            $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0)));
+            $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0))); ## normal flight
+            // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($Y[7] + 300.0))) - rad2deg(atan($H_gs / ($Y[7] + 300.0))); ## reverse flight
             $I_gs_pre = $S_GS * $Epsilon_gs_pre + $DI_GS;
             if ($I_gs_pre > 250.0) {
                 $I_gs_pre = 250.0;
@@ -302,7 +317,7 @@ ini_set('error_reporting', E_ALL);
 
             ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
             $X[11] = $k[7] * $Epsilon_gs;
-            $X[12] = (($k[2] * $Epsilon_gs_pre) / $t[2]) - ($Y[12] / $t[2]);
+            $X[12] = (($k[2] * $Epsilon_gs_pre) / $T[2]) - ($Y[12] / $T[2]);
             //OUR METHODS, X[13] = pA3
             //$X[13] = (($k[11] * $X[1]) / $t[11]) - ($Y[13] / $t[11]);
             //$X[14] = (($k[4] * ($Y[11] + $Y[12] + $Y[13])) / $t[4]) - ($Y[14] / $t[4]); // pB1
@@ -318,9 +333,9 @@ ini_set('error_reporting', E_ALL);
             */
 
             //MELNYK METHODS, X[13] = A3, Y[13] = A3_INTEGRATED
-            $X[13] = (($k[11] * ($Y[1] + $Ipsilon_op[2])) / $t[11]) - ($Y[13] / $t[11]);
-            $X[14] = (($k[4] * ($Y[11] + $Y[12] + $X[13])) / $t[4]) - ($Y[14] / $t[4]); // pB1
-            $X[15] = (($k[8] * ($Y[1] + $Ipsilon_op[2])) / $t[8]) - ($Y[15] / $t[8]); //B2
+            $X[13] = (($k[11] * ($Y[1] + $Ipsilon_op[2])) / $T[11]) - ($Y[13] / $T[11]);
+            $X[14] = (($k[4] * ($Y[11] + $Y[12] + $X[13])) / $T[4]) - ($Y[14] / $T[4]); // pB1
+            $X[15] = (($k[8] * ($Y[1] + $Ipsilon_op[2])) / $T[8]) - ($Y[15] / $T[8]); //B2
 
             $F[1] = $Y[14] + $X[15];
             if ($F[1] > 7.5) {
@@ -331,24 +346,21 @@ ini_set('error_reporting', E_ALL);
             $Ipsilon_set = (-1.0) * $F[1];
 
             /////////////////////////////////////////////////////////////////////////////////////////////
-            $Delta = (-1.0) * $F[6] * ($k_Ipsilon_set * $Ipsilon_set);
-            $Sigma = $F[4] * (($k_Wz + $k_Wz_pre) * $Y[2] + $Delta);
-            if($Delta >= 2) {
-              $Delta = 0.6;
-            } elseif($Delta <= -2) {
-              $Delta = -0.6;
-            } else {
-              $Delta = 0;
+            $F[6] = $k_Ipsilon_set * $Ipsilon_set;
+            $Delta = (-1.0) * $F[6];
+            $Sigma = (($k_Wz + $k_Wz_pre) * $Y[2] + $Delta);
+            if($Sigma > 10) {
+              $Sigma = 10;
+            } elseif($Sigma < -10) {
+              $Sigma = -10;
             }
-            $X[17] = $Delta; // pHi
-            $Dv = $Sigma + $Y[17]; // Dv
           } else {
             // $X[8] = $k_integral * $Y[6];
             $X[8] = $k_integral * $DH; ## Melnik Method !!!
-            if($X[8] > 10) {
-              $X[8] = 10;
-            } elseif($X[8] < -10) {
-              $X[8] = -10;
+            if($Y[8] > 10) {
+              $Y[8] = 10;
+            } elseif($Y[8] < -10) {
+              $Y[8] = -10;
             }
             // $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH;
             $X[9] = ($k_DH * $DH - $Y[9]) / $T_DH; ## Melnik Method !!!
@@ -373,6 +385,16 @@ ini_set('error_reporting', E_ALL);
               $Sigma = -10;
             }
           }
+          $Delta_Hi = $Delta;
+          if($Delta_Hi >= 2) {
+            $Delta_Hi = 0.6;
+          } elseif($Delta_Hi <= -2) {
+            $Delta_Hi = -0.6;
+          } else {
+            $Delta_Hi = 0;
+          }
+          $X[17] = $Delta_Hi; // pHi
+          $Dv = $Sigma + $Y[17]; // Dv
         break;
         }
       }
@@ -401,7 +423,7 @@ ini_set('error_reporting', E_ALL);
 
       switch($integration_method) {
         case "eiler" : {
-          for($i = 1; $i <= 17; $i++){
+          for($i = 1; $i <= 20; $i++){
             $Y[$i] += $X[$i] * $dt;
           }
         break;
