@@ -77,7 +77,7 @@ ini_set('error_reporting', E_ALL);
   $k_Wz = 1.0;
   $k_Ipsilon = 1.0;
   $k_Ipsilon_set = 4.0;
-  $k_integral = 0.0002;
+  $k_integral = 0.002;
   $k_H = 0.2;
   $k_DH = 0.4;
   $T_op[1] = 2.0;
@@ -111,10 +111,10 @@ ini_set('error_reporting', E_ALL);
   $D_RWY0 = 18000;
 
   // for calculations
-  $DGp = $D_RWY0 - (rad2deg($H0) / 2.67) + 300; // Gp - glide path ## normal flight
-  // $DGp = (rad2deg($H0) / 2.67) - 300; // Gp - glide path ## reverse flight
-  $DZp = $DGp - 3500; ## normal flight
-  // $DZp = $DGp + 3500; ## reverse flight
+  // $DGp = $D_RWY0 - (rad2deg($H0) / 2.67) + 300; // Gp - glide path ## normal flight
+  $DGp = (rad2deg($H0) / 2.67) - 300; // Gp - glide path ## reverse flight
+  // $DZp = $DGp - 3500; ## normal flight
+  $DZp = $DGp + 3500; ## reverse flight
   $Ga_B = $m_y_B - (($C_z_B * $pr * $S * $l) / (4 * $m)) * $m_y_vWy;
   $W_x_De = -0.73;
   $Xx = (($m_x_B * $I_y) / ($m_y_B * $I_x)) * (1 / sqrt(1 - pow(($m_x_vWx / $I_x), 2) * $I_y * $S * pow($l, 2) * ($pr / (4 * $m_y_B))));
@@ -170,8 +170,8 @@ ini_set('error_reporting', E_ALL);
     $Y = array_fill(1, 20, 0);
     $F = array_fill(1, 10, 0);
     $Y[5] = $H0; // m
-    $Y[7] = 0; // m ## normal flight
-    // $Y[7] = $D_RWY0; // m ## reverse flight
+    // $Y[7] = 0; // m ## normal flight
+    $Y[7] = $D_RWY0; // m ## reverse flight
 
     switch($flight_case) {
       case 1 : {
@@ -217,6 +217,7 @@ ini_set('error_reporting', E_ALL);
     $I_gs_pre = 0;
     $Dz = 0;
     $Fi_st = 0;
+    $DH_gs = 0;
 
     echo "<div class=\"container no-pad-bot scrollspy\" id=\"flightcase-" . $flight_case ."\">
       <div class=\"section\">
@@ -245,6 +246,7 @@ ini_set('error_reporting', E_ALL);
               <th>D_RWY</th>
               <th>Epsilon_gs</th>
               <th>I_gs</th>
+              <th>Ipsilon_op</th>
             </tr>
           </thead>
           <tbody>";
@@ -269,50 +271,51 @@ ini_set('error_reporting', E_ALL);
       }
 
       $X[1] = $Y[2]; // pIpsilon
-      $X[2] = -1 * $c[1] * $Y[2] - $c[2] * $Y[4] - $c[5] * $X[4] - $c[12] * $Dz - $c[21] * $Fi_st - $c[3] * $Dv; // pWz
+      $X[2] = -1 * $c[1] * $X[1] - $c[2] * $Y[4] - $c[5] * $X[4] - $c[12] * $Dz - $c[21] * $Fi_st - $c[3] * $Dv; // pWz
       $X[3] = $c[4] * $Y[4] + $c[13] * $Dz + $c[22] * $Fi_st + $c[9] * $Dv; // pTetta
-      $X[4] = $Y[1] - $Y[3]; // pAlpha
+      $X[4] = $X[1] - $X[3]; // pAlpha
       $X[5] = $c[6] * $Y[3]; // pH
-      // $X[6] = $X[5] - $H_set; // pDH
+      // $X[6] = $Y[5] - $H_set; // pDH
       $DH = $Y[5] - $H_set; // DH ## Melnik Method !!!
-      $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight
-      // $H_gs = tan(deg2rad($Tetta_GS)) * ($Y[7] + 300); ## reverse flight
+      // $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## high accuracy
+      $H_gs = tan(deg2rad($Tetta_GS)) * ($Y[7] + 300); ## reverse flight ## high accuracy
+      // $H_gs = deg2rad($Tetta_GS) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## low accuracy
+      // $H_gs = deg2rad($Tetta_GS) * ($Y[7] + 300); ## reverse flight ## low accuracy
       $DH_gs = $Y[5] - $H_gs;
       $n_y = $c[16] * $X[3]; // n_y
-      $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY ## normal flight
-      // $X[7] = -1 * $V0 * cos(deg2rad($Y[3])); // pD_RWY ## reverse flight
+      // $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY ## normal flight
+      $X[7] = -1 * $V0 * cos(deg2rad($Y[3])); // pD_RWY ## reverse flight
       $Fi_st = -0.14706 * $Dz;
 
       switch($mode) {
         case "regulation" : {
 
-          for($t; $t >= $ts; $ts += 1){
-            if($Y[7] >= $DZp && $Dz < 17) { ## normal flight
-            // if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
-              $Ipsilon_op[1] = 5;
-              $Dz += $pDz;
-              $Fi_st = -2.5;
-            }
-            if($Dz > 17) {
-              $Dz = 17;
-            } else {
-              // $Ipsilon_op[1] = 5;
-            }
+          // if($Y[7] >= $DZp && $Dz < 17) { ## normal flight
+          if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
+            $Ipsilon_op[1] = 5;
+            $Dz += $pDz * $dt;
+            //$Fi_st = -2.5;
           }
-
-          if($Y[7] >= $DGp) { ## normal flight
-          // if($Y[7] <= $DGp) { ## reverse flight
+          if($Dz > 17) {
+            $Ipsilon_op[1] = 0;
+            $Dz = 17;
+          } else {
+            // $Ipsilon_op[1] = 5;
+          }
+          // if($Y[7] >= $DGp) { ## normal flight
+          if($Y[7] <= $DGp) { ## reverse flight
             $k_Wz_pre = 3.0;
-
-            $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0))); ## normal flight
-            // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($Y[7] + 300.0))) - rad2deg(atan($H_gs / ($Y[7] + 300.0))); ## reverse flight
+            // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0))); ## normal flight ## high accuracy
+            $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($Y[7] + 300.0))) - rad2deg(atan($H_gs / ($Y[7] + 300.0))); ## reverse flight ## high accuracy
+            // $Epsilon_gs_pre = rad2deg($DH_gs / ($D_RWY0 - $Y[7] + 300.0)); ## normal flight ## low accuracy
+            // $Epsilon_gs_pre = rad2deg($DH_gs / ($Y[7] + 300.0)); ## reverse flight ## low accuracy
             $I_gs_pre = $S_GS * $Epsilon_gs_pre + $DI_GS;
             if ($I_gs_pre > 250.0) {
                 $I_gs_pre = 250.0;
             } elseif ($I_gs_pre < -250.0) {
                 $I_gs_pre = -250.0;
             }
-            $X[16] = ($I_gs_pre / $T_GS) - ($Y[16] / $T_GS); //pI_GS
+            $X[16] = ($I_gs_pre - $Y[16]) / $T_GS; //pI_GS
             $Epsilon_gs = $Y[16] / $S_GSn;
 
             ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
@@ -357,15 +360,23 @@ ini_set('error_reporting', E_ALL);
           } else {
             // $X[8] = $k_integral * $Y[6];
             $X[8] = $k_integral * $DH; ## Melnik Method !!!
+            // $F[1] = $k_integral * $Y[6]; ## ...
             if($Y[8] > 10) {
               $Y[8] = 10;
             } elseif($Y[8] < -10) {
               $Y[8] = -10;
             }
+            // if($F[1] > 10) {         ## ...
+            //   $F[1] = 10;            ## ...
+            // } elseif($F[1] < -10) {  ## ...
+            //   $F[1] = -10;           ## ...
+            // }                        ## ...
             // $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH;
             $X[9] = ($k_DH * $DH - $Y[9]) / $T_DH; ## Melnik Method !!!
+            // $X[9] = ($k_DH * $X[6] - $Y[9]) / $T_DH; ## ...
             // $Delta_pre = $Y[8] + $k_H * $Y[6] + $Y[9];
             $Delta_pre = $Y[8] + $k_H * $DH + $Y[9]; ## Melnik Method !!!
+            // $Delta_pre = $F[1] + $k_H * $X[6] + $Y[9]; ## ...
             if($Delta_pre > 10) {
               $Delta_pre = 10;
             } elseif($Delta_pre < -10) {
@@ -410,6 +421,7 @@ ini_set('error_reporting', E_ALL);
         <td>" . number_format($Y[7], 4, '.', ' ') . "</td>
         <td>" . number_format($Epsilon_gs, 0, '.', ' ') . "</td>
         <td>" . number_format($I_gs, 0, '.', ' ') . "</td>
+        <td>" . number_format($Ipsilon_op[1], 4, '.', ' ') . "</td>
         </tr>";
       }
 
@@ -517,7 +529,7 @@ ini_set('error_reporting', E_ALL);
         },
         'title' : 'flight case 1',
         curveType: 'function',
-        colors: ['orange', 'blue', 'red', 'yellow', 'purple', 'green']
+        colors: ['blue', 'orange', 'red', 'yellow', 'purple', 'green']
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_fc1'));
       function placeMarker(dataTable) {
@@ -554,7 +566,7 @@ ini_set('error_reporting', E_ALL);
       var chart_options = {
         'title' : 'flight case 2',
         curveType: 'function',
-        colors: ['orange', 'blue', 'red', 'yellow', 'purple', 'green']
+        colors: ['blue', 'orange', 'red', 'yellow', 'purple', 'green']
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_fc2'));
       function placeMarker(dataTable) {
@@ -591,7 +603,7 @@ ini_set('error_reporting', E_ALL);
       var chart_options = {
         'title' : 'flight case 3',
         curveType: 'function',
-        colors: ['orange', 'blue', 'red', 'yellow', 'purple', 'green']
+        colors: ['blue', 'orange', 'red', 'yellow', 'purple', 'green']
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_fc3'));
       function placeMarker(dataTable) {
@@ -628,7 +640,7 @@ ini_set('error_reporting', E_ALL);
       var chart_options = {
         'title' : 'flight case 4',
         curveType: 'function',
-        colors: ['orange', 'blue', 'red', 'yellow', 'purple', 'green']
+        colors: ['blue', 'orange', 'red', 'yellow', 'purple', 'green']
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_fc4'));
       function placeMarker(dataTable) {
@@ -665,7 +677,7 @@ ini_set('error_reporting', E_ALL);
       var chart_options = {
         'title' : 'flight case 5',
         curveType: 'function',
-        colors: ['orange', 'blue', 'red', 'yellow', 'purple', 'green']
+        colors: ['blue', 'orange', 'red', 'yellow', 'purple', 'green']
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_fc5'));
       function placeMarker(dataTable) {
@@ -702,7 +714,7 @@ ini_set('error_reporting', E_ALL);
       var chart_options = {
         'title' : 'flight case 6',
         curveType: 'function',
-        colors: ['orange', 'blue', 'red', 'yellow', 'purple', 'green']
+        colors: ['blue', 'orange', 'red', 'yellow', 'purple', 'green']
       };
       var chart = new google.visualization.LineChart(document.getElementById('chart_div_fc6'));
       function placeMarker(dataTable) {
