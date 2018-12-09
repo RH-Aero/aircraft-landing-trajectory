@@ -326,8 +326,8 @@ ini_set('error_reporting', E_ALL);
           $Epsilon_gs = $Y[16] / $S_GSn;
 
           // if($Y[7] >= $DGp) { ## normal flight
-          // if($Y[7] <= $DGp) { ## reverse flight
-          if($DH_gs >= 0) { ## normal flight
+          if($Y[7] <= $DGp) { ## reverse flight
+          // if($DH_gs >= 0) { ## normal flight
             $where = "InDGp";
             $k_Wz_pre = 3.0;
             ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
@@ -343,18 +343,18 @@ ini_set('error_reporting', E_ALL);
             // $X[14] = (($k[4] * ($Y[11] + $Y[12] + $X[13])) / $T[4]) - ($Y[14] / $T[4]); // pB1 ## Rezaev Method !!!
             // $X[15] = (($k[8] * ($Y[1] + $Ipsilon_op[2])) / $T[8]) - ($Y[15] / $T[8]); //B2 ## Rezaev Method !!!
             // $F[1] = $Y[14] + $X[15]; ## Rezaev Method !!!
+            /////////////////////////////////////////////////////////////////////////////////////////////
             $X[11] = ($k[2] * $Epsilon_gs - $Y[11]) / $T[2];
             $X[12] = ($k[11] * ($Y[1] + $Ipsilon_op[2]) - $Y[12]) / $T[11];
-            $X[13] = ($k[4] * ($k[7] * $Epsilon_gs + $Y[11] + $Y[12]) - $Y[13]) / $T[4];
+            $X[13] = ($k[4] * ($k[7] * $Epsilon_gs + $X[11] + $X[12]) - $Y[13]) / $T[4];
             $X[14] = ($k[8] * ($Y[1] + $Ipsilon_op[2]) - $Y[14]) / $T[8];
-            $F[1] = $Y[13] + $Y[14];
+            $F[1] = $Y[13] + $X[14];
             if($F[1] > 7.5) {
                 $F[1] = 7.5;
             } elseif($F[1] < -7.5) {
                 $F[1] = -7.5;
             }
             $Ipsilon_set = (-1.0) * $F[1];
-            /////////////////////////////////////////////////////////////////////////////////////////////
             $F[6] = $k_Ipsilon_set * $Ipsilon_set;
             if($Y[5] > 250) {
               if ($F[6] > 7.0) {
