@@ -66,7 +66,7 @@ ini_set('error_reporting', E_ALL);
   $m_z_Dv = -0.96;
   $m_z_M = 0;
   $m_z_Dz = -0.458;
-  $m_z_Fi = 0.715;
+  $m_z_Fi = -2.786;
 
   // automatic landing approach
   $k = array();
@@ -111,10 +111,6 @@ ini_set('error_reporting', E_ALL);
   $D_RWY0 = 18000;
 
   // for calculations
-  // $DGp = $D_RWY0 - (rad2deg($H0) / 2.67) + 300; // Gp - glide path ## normal flight
-  $DGp = (rad2deg($H0) / 2.67) - 300; // Gp - glide path ## reverse flight
-  // $DZp = $DGp - 3500; ## normal flight
-  $DZp = $DGp + 3500; ## reverse flight
   $Ga_B = $m_y_B - (($C_z_B * $pr * $S * $l) / (4 * $m)) * $m_y_vWy;
   $W_x_De = -0.73;
   $Xx = (($m_x_B * $I_y) / ($m_y_B * $I_x)) * (1 / sqrt(1 - pow(($m_x_vWx / $I_x), 2) * $I_y * $S * pow($l, 2) * ($pr / (4 * $m_y_B))));
@@ -135,6 +131,11 @@ ini_set('error_reporting', E_ALL);
   // $c[20] = rad2deg(1) * $C_y0 * $S * $b_a * (($pr * pow($V0, 2)) / (2 * $I_z));
   $c[21] = -($m_z_Fi / $I_z) * $S * pow($b_a, 1) * (($pr * pow($V0, 2) / 2));
   $c[22] = ($C_y_Fi / $m) * $S * (($pr * pow($V0, 1) / 2));
+  echo "<div class=\"container\">
+    <b>c:</b> ";
+    var_dump($c);
+    echo "<br>
+  </div>";
 
   //////////////////////////////////////
   ////////////Control Panel/////////////
@@ -206,6 +207,10 @@ ini_set('error_reporting', E_ALL);
       }
     } 
 
+    // $DGp = $D_RWY0 - (rad2deg($H0) / $Tetta_GS) + 300; // Gp - glide path ## normal flight
+    $DGp = (rad2deg($H0) / $Tetta_GS) - 300; // Gp - glide path ## reverse flight
+    // $DZp = $DGp - 3500; ## normal flight
+    $DZp = $DGp + 3500; ## reverse flight
     $W = 0;
     $NV = 0;
     $Dn = 0;
@@ -218,6 +223,7 @@ ini_set('error_reporting', E_ALL);
     $Dz = 0;
     $Fi_st = 0;
     $DH_gs = 0;
+    $where = "";
 
     echo "<div class=\"container no-pad-bot scrollspy\" id=\"flightcase-" . $flight_case ."\">
       <div class=\"section\">
@@ -243,10 +249,13 @@ ini_set('error_reporting', E_ALL);
               <th>Fi_st</th>
               <th>Ipsilon</th>
               <th>H</th>
+              <th>H_gs</th>
+              <th>DH_gs</th>
               <th>D_RWY</th>
               <th>Epsilon_gs</th>
               <th>I_gs</th>
               <th>Ipsilon_op</th>
+              <th>Where</th>
             </tr>
           </thead>
           <tbody>";
@@ -286,7 +295,6 @@ ini_set('error_reporting', E_ALL);
       // $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY ## normal flight
       $X[7] = -1 * $V0 * cos(deg2rad($Y[3])); // pD_RWY ## reverse flight
       $Fi_st = -0.14706 * $Dz;
-
       switch($mode) {
         case "regulation" : {
 
@@ -295,6 +303,7 @@ ini_set('error_reporting', E_ALL);
             $Ipsilon_op[1] = 5;
             $Dz += $pDz * $dt;
             //$Fi_st = -2.5;
+            $where = "InDZp";
           }
           if($Dz > 17) {
             $Ipsilon_op[1] = 0;
@@ -302,22 +311,25 @@ ini_set('error_reporting', E_ALL);
           } else {
             // $Ipsilon_op[1] = 5;
           }
-          // if($Y[7] >= $DGp) { ## normal flight
-          if($Y[7] <= $DGp) { ## reverse flight
-            $k_Wz_pre = 3.0;
-            // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0))); ## normal flight ## high accuracy
-            $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($Y[7] + 300.0))) - rad2deg(atan($H_gs / ($Y[7] + 300.0))); ## reverse flight ## high accuracy
-            // $Epsilon_gs_pre = rad2deg($DH_gs / ($D_RWY0 - $Y[7] + 300.0)); ## normal flight ## low accuracy
-            // $Epsilon_gs_pre = rad2deg($DH_gs / ($Y[7] + 300.0)); ## reverse flight ## low accuracy
-            $I_gs_pre = $S_GS * $Epsilon_gs_pre + $DI_GS;
-            if ($I_gs_pre > 250.0) {
-                $I_gs_pre = 250.0;
-            } elseif ($I_gs_pre < -250.0) {
-                $I_gs_pre = -250.0;
-            }
-            $X[16] = ($I_gs_pre - $Y[16]) / $T_GS; //pI_GS
-            $Epsilon_gs = $Y[16] / $S_GSn;
 
+          // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0))); ## normal flight ## high accuracy
+          // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($Y[7] + 300.0))) - rad2deg(atan($H_gs / ($Y[7] + 300.0))); ## reverse flight ## high accuracy
+          // $Epsilon_gs_pre = rad2deg($DH_gs) / ($D_RWY0 - $Y[7] + 300.0); ## normal flight ## low accuracy
+          $Epsilon_gs_pre = rad2deg($DH_gs) / ($Y[7] + 300.0); ## reverse flight ## low accuracy
+          $I_gs_pre = $S_GS * $Epsilon_gs_pre + $DI_GS;
+          if ($I_gs_pre > 250.0) {
+            $I_gs_pre = 250.0;
+          } elseif ($I_gs_pre < -250.0) {
+            $I_gs_pre = -250.0;
+          }
+          $X[16] = ($I_gs_pre - $Y[16]) / $T_GS; //pI_GS
+          $Epsilon_gs = $Y[16] / $S_GSn;
+
+          // if($Y[7] >= $DGp) { ## normal flight
+          // if($Y[7] <= $DGp) { ## reverse flight
+          if($DH_gs >= 0) { ## normal flight
+            $where = "InDGp";
+            $k_Wz_pre = 3.0;
             ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
             $X[11] = $k[7] * $Epsilon_gs;
             $X[12] = (($k[2] * $Epsilon_gs_pre) / $T[2]) - ($Y[12] / $T[2]);
@@ -334,12 +346,10 @@ ini_set('error_reporting', E_ALL);
             }
             $Ipsilon_set = (-1.0) * $F[1];
             */
-
             //MELNYK METHODS, X[13] = A3, Y[13] = A3_INTEGRATED
             $X[13] = (($k[11] * ($Y[1] + $Ipsilon_op[2])) / $T[11]) - ($Y[13] / $T[11]);
             $X[14] = (($k[4] * ($Y[11] + $Y[12] + $X[13])) / $T[4]) - ($Y[14] / $T[4]); // pB1
             $X[15] = (($k[8] * ($Y[1] + $Ipsilon_op[2])) / $T[8]) - ($Y[15] / $T[8]); //B2
-
             $F[1] = $Y[14] + $X[15];
             if ($F[1] > 7.5) {
                 $F[1] = 7.5;
@@ -347,9 +357,21 @@ ini_set('error_reporting', E_ALL);
                 $F[1] = -7.5;
             }
             $Ipsilon_set = (-1.0) * $F[1];
-
             /////////////////////////////////////////////////////////////////////////////////////////////
             $F[6] = $k_Ipsilon_set * $Ipsilon_set;
+            if($Y[5] > 250) {
+              if ($F[6] > 7.0) {
+                $F[6] = 7.0;
+              } elseif ($F[6] < -7.0) {
+                $F[6] = -7.0;
+              }
+            } else {
+              if ($F[6] > 3.5) {
+                $F[6] = 3.5;
+              } elseif ($F[6] < -3.5) {
+                $F[6] = -3.5;
+              }
+            }
             $Delta = (-1.0) * $F[6];
             $Sigma = (($k_Wz + $k_Wz_pre) * $Y[2] + $Delta);
             if($Sigma > 10) {
@@ -358,6 +380,7 @@ ini_set('error_reporting', E_ALL);
               $Sigma = -10;
             }
           } else {
+            $where = "InFlight";
             // $X[8] = $k_integral * $Y[6];
             $X[8] = $k_integral * $DH; ## Melnik Method !!!
             // $F[1] = $k_integral * $Y[6]; ## ...
@@ -409,6 +432,11 @@ ini_set('error_reporting', E_ALL);
         break;
         }
       }
+
+      if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
+        
+        $where = "InDZp";
+      }
       
       for($t; $t >= $td; $td += $dd){
         echo  "<tr>
@@ -418,10 +446,13 @@ ini_set('error_reporting', E_ALL);
         <td>" . number_format($Fi_st, 4, '.', ' ') . "</td>
         <td>" . number_format($Y[1], 2, '.', ' ') . "</td>
         <td>" . number_format($Y[5], 4, '.', ' ') . "</td>
+        <td>" . number_format($H_gs, 4, '.', ' ') . "</td>
+        <td>" . number_format($DH_gs, 4, '.', ' ') . "</td>
         <td>" . number_format($Y[7], 4, '.', ' ') . "</td>
-        <td>" . number_format($Epsilon_gs, 0, '.', ' ') . "</td>
-        <td>" . number_format($I_gs, 0, '.', ' ') . "</td>
+        <td>" . number_format($Epsilon_gs, 4, '.', ' ') . "</td>
+        <td>" . number_format($Y[17], 3, '.', ' ') . "</td>
         <td>" . number_format($Ipsilon_op[1], 4, '.', ' ') . "</td>
+        <td>" . $where . "</td>
         </tr>";
       }
 
@@ -459,6 +490,12 @@ ini_set('error_reporting', E_ALL);
           </div>
         </div>
       </div>
+      <div class=\"container\">
+        <div class=\"section\">
+          <h5>DGp = " . $DGp . "</h3>
+          <h5>DZp = " . $DZp . "</h3>
+        </div>
+      </div>
     </div>";
   }
 
@@ -468,8 +505,6 @@ ini_set('error_reporting', E_ALL);
     <div class=\"section\">
       <h4>Vi = " . $Vi . "</h2>
       <h5>M = " . $M . "</h3>
-      <h5>DGp = " . $DGp . "</h3>
-      <h5>DZp = " . $DZp . "</h3>
     </div>
   </div>";
 ?>
