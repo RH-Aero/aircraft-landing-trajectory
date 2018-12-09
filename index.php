@@ -171,8 +171,8 @@ ini_set('error_reporting', E_ALL);
     $Y = array_fill(1, 20, 0);
     $F = array_fill(1, 10, 0);
     $Y[5] = $H0; // m
-    // $Y[7] = 0; // m ## normal flight
-    $Y[7] = $D_RWY0; // m ## reverse flight
+    $Y[7] = 0; // m ## normal flight
+    // $Y[7] = $D_RWY0; // m ## reverse flight
 
     switch($flight_case) {
       case 1 : {
@@ -207,10 +207,10 @@ ini_set('error_reporting', E_ALL);
       }
     } 
 
-    // $DGp = $D_RWY0 - (rad2deg($H0) / $Tetta_GS) + 300; // Gp - glide path ## normal flight
-    $DGp = (rad2deg($H0) / $Tetta_GS) - 300; // Gp - glide path ## reverse flight
-    // $DZp = $DGp - 3500; ## normal flight
-    $DZp = $DGp + 3500; ## reverse flight
+    $DGp = $D_RWY0 - (rad2deg($H0) / $Tetta_GS) + 300; // Gp - glide path ## normal flight
+    // $DGp = (rad2deg($H0) / $Tetta_GS) - 300; // Gp - glide path ## reverse flight
+    $DZp = $DGp - 3500; ## normal flight
+    // $DZp = $DGp + 3500; ## reverse flight
     $W = 0;
     $NV = 0;
     $Dn = 0;
@@ -286,20 +286,20 @@ ini_set('error_reporting', E_ALL);
       $X[5] = $c[6] * $Y[3]; // pH
       // $X[6] = $Y[5] - $H_set; // pDH
       $DH = $Y[5] - $H_set; // DH ## Melnik Method !!!
-      // $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## high accuracy
-      $H_gs = tan(deg2rad($Tetta_GS)) * ($Y[7] + 300); ## reverse flight ## high accuracy
+      $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## high accuracy
+      // $H_gs = tan(deg2rad($Tetta_GS)) * ($Y[7] + 300); ## reverse flight ## high accuracy
       // $H_gs = deg2rad($Tetta_GS) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## low accuracy
       // $H_gs = deg2rad($Tetta_GS) * ($Y[7] + 300); ## reverse flight ## low accuracy
       $DH_gs = $Y[5] - $H_gs;
       $n_y = $c[16] * $X[3]; // n_y
-      // $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY ## normal flight
-      $X[7] = -1 * $V0 * cos(deg2rad($Y[3])); // pD_RWY ## reverse flight
+      $X[7] = $V0 * cos(deg2rad($Y[3])); // pD_RWY ## normal flight
+      // $X[7] = -1 * $V0 * cos(deg2rad($Y[3])); // pD_RWY ## reverse flight
       $Fi_st = -0.14706 * $Dz;
       switch($mode) {
         case "regulation" : {
 
-          // if($Y[7] >= $DZp && $Dz < 17) { ## normal flight
-          if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
+          if($Y[7] >= $DZp && $Dz < 17) { ## normal flight
+          // if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
             $Ipsilon_op[1] = 5;
             $Dz += $pDz * $dt;
             //$Fi_st = -2.5;
@@ -314,8 +314,8 @@ ini_set('error_reporting', E_ALL);
 
           // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($D_RWY0 - $Y[7] + 300.0))) - rad2deg(atan($H_gs / ($D_RWY0 - $Y[7] + 300.0))); ## normal flight ## high accuracy
           // $Epsilon_gs_pre = rad2deg(atan($Y[5] / ($Y[7] + 300.0))) - rad2deg(atan($H_gs / ($Y[7] + 300.0))); ## reverse flight ## high accuracy
-          // $Epsilon_gs_pre = rad2deg($DH_gs) / ($D_RWY0 - $Y[7] + 300.0); ## normal flight ## low accuracy
-          $Epsilon_gs_pre = rad2deg($DH_gs) / ($Y[7] + 300.0); ## reverse flight ## low accuracy
+          $Epsilon_gs_pre = rad2deg($DH_gs) / ($D_RWY0 - $Y[7] + 300.0); ## normal flight ## low accuracy
+          // $Epsilon_gs_pre = rad2deg($DH_gs) / ($Y[7] + 300.0); ## reverse flight ## low accuracy
           $I_gs_pre = $S_GS * $Epsilon_gs_pre + $DI_GS;
           if ($I_gs_pre > 250.0) {
             $I_gs_pre = 250.0;
@@ -325,9 +325,9 @@ ini_set('error_reporting', E_ALL);
           $X[16] = ($I_gs_pre - $Y[16]) / $T_GS; //pI_GS
           $Epsilon_gs = $Y[16] / $S_GSn;
 
-          // if($Y[7] >= $DGp) { ## normal flight
-          if($Y[7] <= $DGp) { ## reverse flight
-          // if($DH_gs >= 0) { ## normal flight
+          if($Y[7] >= $DGp) { ## normal flight
+          // if($Y[7] <= $DGp) { ## reverse flight
+          // if($DH_gs >= 0) { ## normal flight ## ???
             $where = "InDGp";
             $k_Wz_pre = 3.0;
             ///////IPSILON_SET_CALCULATIONS//////////////////////////////////////////////////////////////////
