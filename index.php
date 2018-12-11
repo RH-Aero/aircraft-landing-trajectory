@@ -209,7 +209,7 @@ ini_set('error_reporting', E_ALL);
 
     $DGp = $D_RWY0 - (rad2deg($H0) / $Tetta_GS) + 300; // Gp - glide path ## normal flight
     // $DGp = (rad2deg($H0) / $Tetta_GS) - 300; // Gp - glide path ## reverse flight
-    $DZp = $DGp - 3500; ## normal flight
+    $DZp = $DGp - 1500; ## normal flight
     // $DZp = $DGp + 3500; ## reverse flight
     $W = 0;
     $NV = 0;
@@ -286,9 +286,9 @@ ini_set('error_reporting', E_ALL);
       $X[5] = $c[6] * $Y[3]; // pH
       // $X[6] = $Y[5] - $H_set; // pDH
       $DH = $Y[5] - $H_set; // DH ## Melnik Method !!!
-      $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## high accuracy
+      // $H_gs = tan(deg2rad($Tetta_GS)) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## high accuracy
       // $H_gs = tan(deg2rad($Tetta_GS)) * ($Y[7] + 300); ## reverse flight ## high accuracy
-      // $H_gs = deg2rad($Tetta_GS) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## low accuracy
+      $H_gs = deg2rad($Tetta_GS) * ($D_RWY0 - $Y[7] + 300); ## normal flight ## low accuracy
       // $H_gs = deg2rad($Tetta_GS) * ($Y[7] + 300); ## reverse flight ## low accuracy
       $DH_gs = $Y[5] - $H_gs;
       $n_y = $c[16] * $X[3]; // n_y
@@ -325,8 +325,10 @@ ini_set('error_reporting', E_ALL);
           $X[16] = ($I_gs_pre - $Y[16]) / $T_GS; //pI_GS
           $Epsilon_gs = $Y[16] / $S_GSn;
 
-          if($Y[7] >= $DGp) { ## normal flight
+          // if($Y[7] >= $DGp) { ## normal flight
+          if($Y[7] >= $DGp || $DH_gs >= 0) { ## normal flight ## ???
           // if($Y[7] <= $DGp) { ## reverse flight
+          // if($Y[7] >= $DGp || $DH_gs >= 0) { ## reverse flight ## ???
           // if($DH_gs >= 0) { ## normal flight ## ???
             $where = "InDGp";
             $k_Wz_pre = 3.0;
@@ -377,7 +379,7 @@ ini_set('error_reporting', E_ALL);
               $Sigma = -10;
             }
           } else {
-            $where = "InFlight";
+            $where = "InStab";
             // $X[8] = $k_integral * $Y[6];
             $X[8] = $k_integral * $DH; ## Melnik Method !!!
             // $F[1] = $k_integral * $Y[6]; ## ...
@@ -429,9 +431,8 @@ ini_set('error_reporting', E_ALL);
         break;
         }
       }
-
-      if($Y[7] <= $DZp && $Dz < 17) { ## reverse flight
-        
+      if($Y[7] >= $DZp && $Y[7] <= $DGp) { ## normal flight
+      // if($Y[7] <= $DZp && $Y[7] >= $DGp) { ## reverse flight
         $where = "InDZp";
       }
       
@@ -455,7 +456,7 @@ ini_set('error_reporting', E_ALL);
 
       for($t; $t >= $tg; $tg += $gd){
         array_push($graph_data[$flight_case], ["time" => $td, "H" => $Y[5], "D_RWY" => $Y[7]]);
-        if($Y[5] <= 20) {
+        if($Y[5] <= 10) {
           break 2;
         }
       }
