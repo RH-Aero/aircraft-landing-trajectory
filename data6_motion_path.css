@@ -1,12 +1,37 @@
+#chart_div_mp6 .gwd-gen-6666gwdanimation {
+  animation: gwd-gen-6666gwdanimation_gwd-keyframes 20s linear 0s 1 normal forwards running;
+}
+@keyframes gwd-gen-6666gwdanimation_gwd-keyframes {
+  0% {
+    transform: rotateZ(0deg);
+    animation-timing-function: linear;
+  }
+  45% {
+    transform: rotateZ(-0.95deg);
+    animation-timing-function: linear;
+  }
+  80% {
+    transform: rotateZ(-6.57deg);
+    animation-timing-function: linear;
+  }
+  92.5% {
+    transform: rotateZ(-22.25deg);
+    animation-timing-function: linear;
+  }
+  100% {
+    transform: rotateZ(-44.31deg);
+    animation-timing-function: linear;
+  }
+}
 #chart_div_mp6 .gwd-motion-path-6666-anim-x {
   --gwd-motion-path: {
     "tangentFollowing": true, "sections": [ {
-      "controlPoints": ["0px", "0px", "421.73px", "-0.27px", "341.39px", "2.54px", "380.16px", "1.42px", "380.16px", "1.42px", "439.15px", "-22.18px", "353.19px", "-51.39px", "667px", "255px"], "startTimeMs": 0, "endTimeMs": 19500, "easing": "linear"
+      "controlPoints": ["0px", "0px", "421.73px", "-0.27px", "341.39px", "2.54px", "380.16px", "1.42px", "380.16px", "1.42px", "439.15px", "-22.18px", "353.19px", "-51.39px", "667px", "255px"], "startTimeMs": 0, "endTimeMs": 20000, "easing": "linear"
     }
     ], "positionTol":0.5, "angleTol":1, "optimizationLevel":0
   }
   ;
-  animation:gwd-motion-path-6666-keys-x 19.5s linear 0s 1 normal forwards running;
+  animation:gwd-motion-path-6666-keys-x 20s linear 0s 1 normal forwards running;
   transform:translate3d(0px, 0px, 0px);
 }
 @keyframes gwd-motion-path-6666-keys-x {
@@ -25,7 +50,7 @@
   }
 }
 #chart_div_mp6 .gwd-motion-path-6666-anim-y {
-  animation: gwd-motion-path-6666-keys-y 19.5s linear 0s 1 normal forwards running;
+  animation: gwd-motion-path-6666-keys-y 20s linear 0s 1 normal forwards running;
   transform: translate3d(0px, 0px, 0px);
 }
 @keyframes gwd-motion-path-6666-keys-y {
@@ -46,7 +71,7 @@
   }
 }
 #chart_div_mp6 .gwd-motion-path-6666-anim-theta {
-  animation: gwd-motion-path-6666-keys-theta 19.5s linear 0s 1 normal forwards running;
+  animation: gwd-motion-path-6666-keys-theta 20s linear 0s 1 normal forwards running;
   transform: rotateZ(-0.04deg);
 }
 @keyframes gwd-motion-path-6666-keys-theta {
