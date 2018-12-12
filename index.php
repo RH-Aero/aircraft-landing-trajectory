@@ -164,7 +164,7 @@ ini_set('error_reporting', E_ALL);
     $ts = 0; // s - output time every second
     $tf = 300.1; // s - flight ending time
     $dt = 0.01; // 1 per s - integration step
-    $dd = 5; // s - output step
+    $dd = 25; // s - output step
     $gd = 1; // s - graphics output step
 
     $X = array_fill(1, 20, 0);
@@ -482,6 +482,9 @@ ini_set('error_reporting', E_ALL);
         <div class=\"chartWithMarkerOverlay\">
           <div id = \"chart_div_fc" . $flight_case . "\" style = \"width: 1000px; height: 500px; margin-left: -100px;\">
           </div>
+          <div id = \"chart_div_img" . $flight_case . "\" class = \"overlay-marker\">
+            <img src = \"img/image" . $flight_case . ".png\">
+          </div>
           <div id = \"chart_div_mp" . $flight_case . "\" class = \"overlay-marker\">
             <img src = \"img/baseline_airplanemode_active_black_48.png\" class = \"gwd-img-" . $flight_case . $flight_case . $flight_case . $flight_case . " gwd-gen-" . $flight_case . $flight_case . $flight_case . $flight_case . "gwdanimation\"
             data-gwd-motion-path-key = \"gwd-motion-path-" . $flight_case . $flight_case . $flight_case . $flight_case . "\" data-gwd-has-tangent-following = \"\">
@@ -570,6 +573,8 @@ ini_set('error_reporting', E_ALL);
         var chart_area = chart_li.getChartAreaBoundingBox();
         document.querySelector('#chart_div_mp1').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 347 + "px";
         document.querySelector('#chart_div_mp1').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 145 + "px";
+        document.querySelector('#chart_div_img1').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 347 + "px";
+        document.querySelector('#chart_div_img1').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 145 + "px";
       };
       google.visualization.events.addListener(chart, 'ready', placeMarker.bind(chart, chart_data));
       chart.draw(chart_data, chart_options);
@@ -607,6 +612,8 @@ ini_set('error_reporting', E_ALL);
         var chart_area = chart_li.getChartAreaBoundingBox();
         document.querySelector('#chart_div_mp2').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 350 + "px";
         document.querySelector('#chart_div_mp2').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 145 + "px";
+        document.querySelector('#chart_div_img2').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 350 + "px";
+        document.querySelector('#chart_div_img2').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 145 + "px";
       };
       google.visualization.events.addListener(chart, 'ready', placeMarker.bind(chart, chart_data));
       chart.draw(chart_data, chart_options);
@@ -644,6 +651,8 @@ ini_set('error_reporting', E_ALL);
         var chart_area = chart_li.getChartAreaBoundingBox();
         document.querySelector('#chart_div_mp3').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 345 + "px";
         document.querySelector('#chart_div_mp3').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 142 + "px";
+        document.querySelector('#chart_div_img3').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 345 + "px";
+        document.querySelector('#chart_div_img3').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 142 + "px";
       };
       google.visualization.events.addListener(chart, 'ready', placeMarker.bind(chart, chart_data));
       chart.draw(chart_data, chart_options);
@@ -681,6 +690,8 @@ ini_set('error_reporting', E_ALL);
         var chart_area = chart_li.getChartAreaBoundingBox();
         document.querySelector('#chart_div_mp4').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 348 + "px";
         document.querySelector('#chart_div_mp4').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 140 + "px";
+        document.querySelector('#chart_div_img4').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 348 + "px";
+        document.querySelector('#chart_div_img4').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 140 + "px";
       };
       google.visualization.events.addListener(chart, 'ready', placeMarker.bind(chart, chart_data));
       chart.draw(chart_data, chart_options);
@@ -718,6 +729,8 @@ ini_set('error_reporting', E_ALL);
         var chart_area = chart_li.getChartAreaBoundingBox();
         document.querySelector('#chart_div_mp5').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 353 + "px";
         document.querySelector('#chart_div_mp5').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 148 + "px";
+        document.querySelector('#chart_div_img5').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 353 + "px";
+        document.querySelector('#chart_div_img5').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 148 + "px";
       };
       google.visualization.events.addListener(chart, 'ready', placeMarker.bind(chart, chart_data));
       chart.draw(chart_data, chart_options);
@@ -754,7 +767,9 @@ ini_set('error_reporting', E_ALL);
         var chart_li = this.getChartLayoutInterface();
         var chart_area = chart_li.getChartAreaBoundingBox();
         document.querySelector('#chart_div_mp6').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 325 + "px";
-        document.querySelector('#chart_div_mp6').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 148 + "px";
+        document.querySelector('#chart_div_mp6').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 147 + "px";
+        document.querySelector('#chart_div_img6').style.top = Math.floor(chart_li.getYLocation(dataTable.getValue(0, 0))) - 325 + "px";
+        document.querySelector('#chart_div_img6').style.left = Math.floor(chart_li.getXLocation(dataTable.getValue(0, 0))) - 144 + "px";
       };
       google.visualization.events.addListener(chart, 'ready', placeMarker.bind(chart, chart_data));
       chart.draw(chart_data, chart_options);
