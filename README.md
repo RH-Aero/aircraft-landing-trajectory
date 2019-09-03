@@ -17,6 +17,11 @@ This project is a simulator of the aircraft landing trajectory. [Tupolev TU-154]
 * **Yaroslav Rezaiev** - *Initial idea, architecture and partial implementation* - [YRSLV](https://github.com/YRSLV)
 * **Alex Kharchenko** - *UI design and partial implementation* - [karasick](https://github.com/karasick)
 
+## Credits 
+
+* Monitor mockup by [Eugene Chernov](https://www.deviantart.com/eugene-joe-c)
+* Planes and UFOs background pattern by [ArtRayd](http://artrayd.deviantart.com/)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
