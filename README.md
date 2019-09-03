@@ -3,7 +3,7 @@
 
 ![Aircraft trajectory](https://github.com/RH-Aero/aircraft-landing-trajectory/blob/master/img/monitor_mockup.png)
 
-This project is a simulator of the aircraft landing trajectory. [Tupolev TU-154](https://en.wikipedia.org/wiki/Tupolev_Tu-154) functional capabilities were used as the test data set for landing trajectory re-creation.
+This project is a simulator of the aircraft landing trajectory. [Tupolev TU-154](https://en.wikipedia.org/wiki/Tupolev_Tu-154) functional capabilities were used as the test data set for landing trajectory re-creation. Main glide slope value is 2°67′.
 
 ## Built With
 
